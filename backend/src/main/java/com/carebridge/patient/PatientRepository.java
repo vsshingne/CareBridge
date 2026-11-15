@@ -1,0 +1,8 @@
+package com.carebridge.patient;
+
+import java.util.*;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface PatientRepository extends JpaRepository<Patient, UUID> {
+  Optional<Patient> findByUserId(UUID userId);
+}

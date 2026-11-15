@@ -1,0 +1,14 @@
+.tools/
+.env
+.env.production
+frontend/.env.local
+frontend/.env.production.local
+**/target/
+**/node_modules/
+**/dist/
+*.log
+.idea/
+.DS_Store
+*.tsbuildinfo
+frontend/playwright-report/
+frontend/test-results/

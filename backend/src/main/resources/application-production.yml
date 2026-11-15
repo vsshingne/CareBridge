@@ -1,0 +1,10 @@
+server:
+  shutdown: graceful
+spring:
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
+springdoc:
+  api-docs.enabled: false
+  swagger-ui.enabled: false
+management:
+  endpoint.health.show-details: never
