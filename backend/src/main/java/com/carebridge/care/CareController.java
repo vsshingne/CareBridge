@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 public class CareController {
   private final CareService service;
   public CareController(CareService service) {this.service=service;}
+  @GetMapping("/dashboard") public java.util.Map<String,Long> dashboard(){return service.dashboard();}
   @GetMapping("/plans") public Pages.Result<Plan> plans(@RequestParam(defaultValue="0") int page,@RequestParam(defaultValue="20") int size) {return service.plans(page,size);}
   @PostMapping("/plans") @ResponseStatus(HttpStatus.CREATED) public Plan create(@Valid @RequestBody CreatePlan r) {return service.create(r);}
   @GetMapping("/plans/{id}") public Plan get(@PathVariable UUID id) {return service.get(id);}

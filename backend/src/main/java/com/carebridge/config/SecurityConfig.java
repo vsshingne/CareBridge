@@ -53,7 +53,7 @@ public class SecurityConfig {
   }
 
   @Bean
-  SecurityFilterChain security(HttpSecurity http, UserRepository users, ObjectMapper mapper)
+  SecurityFilterChain security(HttpSecurity http, UserRepository users, ObjectMapper mapper,com.carebridge.audit.AuditService audit)
       throws Exception {
     return http.cors(c -> {})
         .csrf(c -> c.disable())
@@ -69,6 +69,8 @@ public class SecurityConfig {
                         "/swagger-ui.html")
                     .permitAll()
                     .requestMatchers("/api/v1/admin/**")
+                    .hasRole("ADMIN")
+                    .requestMatchers("/actuator/metrics", "/actuator/metrics/**")
                     .hasRole("ADMIN")
                     .requestMatchers("/api/v1/doctors/me/**")
                     .hasRole("DOCTOR")
@@ -123,6 +125,7 @@ public class SecurityConfig {
                         })
                     .accessDeniedHandler(
                         (r, s, x) -> {
+                          audit.authorizationFailure();
                           s.setStatus(403);
                           s.setContentType("application/json");
                           mapper.writeValue(

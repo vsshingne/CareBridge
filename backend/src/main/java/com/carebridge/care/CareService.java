@@ -142,6 +142,17 @@ public class CareService {
     var args=new ArrayList<Object>(); String scope=planScope(current.get(),args);
     return page(PLAN_SELECT+" where "+scope,args,PLAN,page,size);
   }
+  public Map<String,Long> dashboard() {
+    UserAccount actor=current.get();var args=new ArrayList<Object>();String scope=planScope(actor,args);
+    String base=" from care_plans p join patients pt on pt.id=p.patient_id join doctors d on d.id=p.provider_id where "+scope;
+    Map<String,Long> result=new LinkedHashMap<>();
+    result.put("completedPlans",db.queryForObject("select count(*)"+base+" and p.status='COMPLETED'",Long.class,args.toArray()));
+    for(var filter:Map.of("pendingActivities","a.status not in ('COMPLETED','CANCELLED')","overdueActivities","a.status not in ('COMPLETED','CANCELLED') and a.due_at<now()","upcomingFollowUps","a.type='FOLLOW_UP' and a.status not in ('COMPLETED','CANCELLED') and a.due_at>=now() and a.due_at<now()+interval '7 days'").entrySet())
+      result.put(filter.getKey(),db.queryForObject("select count(*) from care_activities a where "+filter.getValue()+" and a.plan_id in (select p.id"+base+" and p.status='ACTIVE')",Long.class,args.toArray()));
+    for(var filter:Map.of("pendingReferrals","r.status not in ('COMPLETED','CANCELLED')","unscheduledReferrals","r.status='ACCEPTED'").entrySet())
+      result.put(filter.getKey(),db.queryForObject("select count(*) from referrals r where "+filter.getValue()+" and r.plan_id in (select p.id"+base+" and p.status='ACTIVE')",Long.class,args.toArray()));
+    return result;
+  }
   public Pages.Result<Activity> activities(UUID id,int page,int size) {
     readPlan(plan(id,false),current.get());
     return page("select * from care_activities where plan_id=?",new ArrayList<>(List.of(id)),ACTIVITY,page,size);

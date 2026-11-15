@@ -50,7 +50,7 @@ server:
     include-message: never
     include-stacktrace: never
 management:
-  endpoints.web.exposure.include: health,info
+  endpoints.web.exposure.include: health,info,metrics
   endpoint.health.show-details: when_authorized
   endpoint.health.probes.enabled: true
   endpoint.health.group.readiness.include: readinessState,db,redis,kafka

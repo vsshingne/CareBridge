@@ -624,6 +624,29 @@ class PlatformIT {
     assertEquals(before,outbox.count());
   }
 
+  @Test void twoRetriesAcceptingTheSameOfferReturnOneBooking() throws Exception {
+    waitForSlot(otherPatientToken);UUID id=booked();assertEquals(200,action(patientToken,id,"cancel"));
+    var row=outbox.findAll().stream().filter(e->e.eventType.equals("APPOINTMENT_CANCELLED")).findFirst().orElseThrow();
+    recovery.process(mapper.readValue(row.payload,com.carebridge.outbox.EventService.Event.class));
+    UUID offer=db.queryForObject("select id from appointment_offers",UUID.class),key=UUID.randomUUID();
+    ExecutorService pool=Executors.newFixedThreadPool(2);CountDownLatch go=new CountDownLatch(1);
+    try{
+      var first=pool.submit(()->{go.await();return acceptOffer(otherPatientToken,offer,key);});
+      var second=pool.submit(()->{go.await();return acceptOffer(otherPatientToken,offer,key);});go.countDown();
+      var one=first.get(30,TimeUnit.SECONDS).getResponse();var two=second.get(30,TimeUnit.SECONDS).getResponse();
+      assertEquals(200,one.getStatus());assertEquals(200,two.getStatus());
+      assertEquals(mapper.readTree(one.getContentAsString()).get("id"),mapper.readTree(two.getContentAsString()).get("id"));
+      assertEquals(1,db.queryForObject("select count(*) from appointments where status='PENDING'",Integer.class));
+    }finally{pool.shutdownNow();}
+  }
+
+  @Test void metricsAreAdminOnlyAndAuthorizationDenialIsAudited() throws Exception {
+    assertEquals(403,mvc.perform(get("/actuator/metrics").header("Authorization","Bearer "+patientToken)).andReturn().getResponse().getStatus());
+    assertEquals(1,db.queryForObject("select count(*) from audit_logs where action='AUTHORIZATION_DENIED'",Integer.class));
+    assertEquals(200,mvc.perform(get("/actuator/metrics").header("Authorization","Bearer "+adminToken)).andReturn().getResponse().getStatus());
+    assertEquals(0,careRequest(patientToken,"GET","/dashboard",null,200).get("pendingActivities").asInt());
+  }
+
   @Test
   void carePlanIsolationCompletionAndHistory() throws Exception {
     String id=carePlan();

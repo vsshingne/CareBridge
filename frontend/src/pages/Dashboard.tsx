@@ -14,6 +14,7 @@ import type { Appointment, Notification, Page } from "../types";
 import { Overview } from "./Admin";
 export function Dashboard() {
   const { user } = useAuth();
+  const care = useQuery({queryKey:["care","dashboard"],queryFn:()=>get<Record<string,number>>("/care/dashboard"),refetchInterval:30000});
   const appointments = useQuery({
     queryKey: ["appointments", "dashboard"],
     queryFn: () =>
@@ -52,6 +53,13 @@ export function Dashboard() {
             ? "A clear view of your platform and the people who rely on it."
             : "It’s a good day to take care of yourself."}
       </p>
+      <ErrorBox error={care.error}/>
+      <div className="stats-grid">{[
+        ["pendingActivities","Pending activities"],["overdueActivities","Overdue activities"],
+        ["pendingReferrals","Pending referrals"],["unscheduledReferrals","Unscheduled referrals"],
+        ["upcomingFollowUps","Follow-ups this week"],["completedPlans","Completed plans"],
+      ].map(([key,label])=><Link className="stat-card" to={key.toLowerCase().includes("referral")?"/referrals":"/care"} key={key}><strong>{care.data?.[key]??"—"}</strong><span>{label}</span></Link>)}</div>
+      <div className="row-actions"><Link to="/care" className="text-link">Care plans</Link><Link to="/referrals" className="text-link">Referrals</Link><Link to="/gaps" className="text-link">Care gaps</Link>{user?.role==="PATIENT"&&<Link to="/recovery" className="text-link">Waiting list</Link>}</div>
       {user?.role === "ADMIN" ? (
         <Overview />
       ) : (

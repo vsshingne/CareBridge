@@ -26,7 +26,7 @@ class ErrorsTest {
   }
 
   private final MockMvc mvc =
-      MockMvcBuilders.standaloneSetup(new Inputs()).setControllerAdvice(new Errors()).build();
+      MockMvcBuilders.standaloneSetup(new Inputs()).setControllerAdvice(new Errors(org.mockito.Mockito.mock(com.carebridge.audit.AuditService.class),new io.micrometer.core.instrument.simple.SimpleMeterRegistry())).build();
 
   @Test
   void invalidTimezoneIsClientError() throws Exception {

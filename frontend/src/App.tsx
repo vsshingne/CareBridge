@@ -10,7 +10,7 @@ import {
   ShieldCheck,
   UserRound,
 } from "lucide-react";
-import { useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import { Protected, useAuth } from "./auth";
 import { ErrorBox } from "./components/UI";
 import { AuthPage } from "./pages/AuthPage";
@@ -19,9 +19,13 @@ import { Appointments } from "./pages/Appointments";
 import { Profile, Schedule } from "./pages/Profile";
 import { Admin } from "./pages/Admin";
 import { Dashboard } from "./pages/Dashboard";
-import { CarePlans, NewCarePlan, CarePlanDetail, Referrals, CareJourney } from "./pages/Care";
-import { CareGaps } from "./pages/CareGaps";
-import { Recovery } from "./pages/Recovery";
+const CarePlans=lazy(()=>import("./pages/Care").then(m=>({default:m.CarePlans})));
+const NewCarePlan=lazy(()=>import("./pages/Care").then(m=>({default:m.NewCarePlan})));
+const CarePlanDetail=lazy(()=>import("./pages/Care").then(m=>({default:m.CarePlanDetail})));
+const Referrals=lazy(()=>import("./pages/Care").then(m=>({default:m.Referrals})));
+const CareJourney=lazy(()=>import("./pages/Care").then(m=>({default:m.CareJourney})));
+const CareGaps=lazy(()=>import("./pages/CareGaps").then(m=>({default:m.CareGaps})));
+const Recovery=lazy(()=>import("./pages/Recovery").then(m=>({default:m.Recovery})));
 
 export default function App() {
   const { user, signOut } = useAuth();
@@ -110,7 +114,7 @@ export default function App() {
       </header>
       <ErrorBox error={error} />
       <main>
-        <Routes>
+        <Suspense fallback={<p className="loading">Loading workspace…</p>}><Routes>
           <Route path="/care" element={<Protected><CarePlans/></Protected>}/>
           <Route path="/care/new" element={<Protected roles={["DOCTOR"]}><NewCarePlan/></Protected>}/>
           <Route path="/care/:id" element={<Protected><CarePlanDetail/></Protected>}/>
@@ -175,7 +179,7 @@ export default function App() {
               </section>
             }
           />
-        </Routes>
+        </Routes></Suspense>
       </main>
       <footer>
         <Link to="/" className="brand">

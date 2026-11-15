@@ -12,6 +12,9 @@ import org.springframework.web.bind.annotation.*;
 
 @RestControllerAdvice
 public class Errors {
+  private final com.carebridge.audit.AuditService audit;
+  private final io.micrometer.core.instrument.MeterRegistry metrics;
+  public Errors(com.carebridge.audit.AuditService audit,io.micrometer.core.instrument.MeterRegistry metrics){this.audit=audit;this.metrics=metrics;}
   public record ErrorBody(
       Instant timestamp, int status, String error, String message, String path) {}
 
@@ -21,6 +24,8 @@ public class Errors {
 
   @ExceptionHandler(ApiException.class)
   ResponseEntity<ErrorBody> api(ApiException e, HttpServletRequest r) {
+    if(e.status==HttpStatus.FORBIDDEN)audit.authorizationFailure();
+    if(e.status==HttpStatus.CONFLICT)metrics.counter("carebridge.conflicts", "workflow", r.getRequestURI().startsWith("/api/v1/appointments")||r.getRequestURI().startsWith("/api/v1/recovery")?"appointment":"care").increment();
     return ResponseEntity.status(e.status).body(body(e.status, e.getMessage(), r.getRequestURI()));
   }
 
