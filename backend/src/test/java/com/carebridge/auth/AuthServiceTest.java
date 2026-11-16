@@ -21,7 +21,16 @@ class AuthServiceTest {
   JwtService jwt = mock(JwtService.class);
   AuditService audit = mock(AuditService.class);
   BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(4);
-  AuthService service = new AuthService(users, patients, doctors, refresh, encoder, jwt, audit,mock(com.carebridge.outbox.EventService.class));
+  AuthService service =
+      new AuthService(
+          users,
+          patients,
+          doctors,
+          refresh,
+          encoder,
+          jwt,
+          audit,
+          mock(com.carebridge.outbox.EventService.class));
   AuthDtos.Register registration =
       new AuthDtos.Register(
           "Jane Doe", "JANE@example.test", "strong-password-123", null, null, null, null);

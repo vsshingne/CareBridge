@@ -1,4 +1,73 @@
-﻿# API documentation
+# API documentation
+
+## CareBridge 2.0 additions
+
+Paths are relative to `/api/v1` and require bearer authentication. Patients read their own care; clinical changes require the assigned provider. Care and gap pages accept `page` (zero-based) and `size` (1–100), ordered newest first. Stale versions and invalid transitions return 409. Input errors return 400; unauthorized resources return 403/404.
+
+| Method | Path | Input / behavior |
+| --- | --- | --- |
+| GET | `/care/dashboard` | Scoped pending/overdue activities, referrals, unscheduled referrals, seven-day follow-ups and completed plans |
+| GET, POST | `/care/plans` | List; create using confirmed/completed `appointmentId`, `title`, `goals` |
+| GET, PUT | `/care/plans/{id}` | Read; update `version`, `title`, `goals` |
+| PATCH | `/care/plans/{id}/status` | `version`, COMPLETED/CANCELLED `status`; all activities/referrals must be closed |
+| GET, POST | `/care/plans/{id}/activities` | Paged list; create `type`, `title`, future `dueAt` |
+| PUT | `/care/plans/{planId}/activities/{id}` | `version`, `title`, future `dueAt` |
+| PATCH | `/care/plans/{planId}/activities/{id}/status` | `version`, `status`, `outcome` required on completion |
+| POST | `/care/plans/{id}/referrals` | `receivingProviderId`, `clinicalReason`, ROUTINE/URGENT `priority`, future `dueAt` |
+| GET | `/care/referrals`, `/care/referrals/{id}` | Scoped tracking; receiver sees the referral, not the full source plan |
+| PATCH | `/care/referrals/{id}/status` | `version`, `status`, `appointmentId` on scheduling, `outcome` on completion |
+| PATCH | `/care/referrals/{id}/assignment` | Referring provider: `version`, `receivingProviderId` |
+| GET | `/care/journey/{patientId}` | `type`, `status`, `from` inclusive, `to` exclusive, `page`, `size` |
+| GET, POST | `/recovery/waiting-list` | Own latest 100 entries (array); create provider OR specialty preference, availability, notification preference |
+| DELETE | `/recovery/waiting-list/{id}` | Remove own entry; 204 |
+| PATCH | `/recovery/waiting-list/{id}/priority` | Admin: `priority` 0–10; 204 |
+| GET | `/recovery/offers` | Own latest 100 offers (array), effective expiry/inactive status |
+| POST | `/recovery/offers/{id}/accept` | UUID `idempotencyKey`; returns appointment DTO; successful retry returns same booking |
+| GET | `/care/gaps` | Scoped alerts; `resolved=false|true`, `page`, `size` |
+| GET, POST | `/care/gaps/rules` | Provider's own/admin global rules (latest 100 array); create explicit rule |
+| PATCH | `/care/gaps/rules/{id}` | Owner/admin: `version`, `enabled`; starts new revision, resolves prior alerts; 204 |
+| POST | `/care/gaps/evaluate` | Admin scan; 204; scheduler also runs every minute |
+| GET | `/fhir/r4/care-plans/{id}/bundle` | Validated `application/fhir+json`; same care-plan authorization |
+
+`/notifications` now combines both inboxes. Fields: `id`, nullable `appointmentId`, `entityId`, `eventType`, `createdAt`. Clients must handle care notices without appointment IDs. `/actuator/metrics/**` requires ADMIN; public `/actuator/info` exposes configured release revision only.
+
+Synthetic request examples, with UUIDs replaced by actual API results:
+
+```http
+POST /api/v1/care/plans
+Authorization: Bearer <doctor-token>
+Content-Type: application/json
+
+{"appointmentId":"00000000-0000-0000-0000-000000000001","title":"Synthetic review plan","goals":"Complete the provider-defined review."}
+```
+
+The 201 plan DTO contains IDs, patient/provider display names, title, goals, `status: "ACTIVE"`, `version: 0`, creation time and activity/referral progress counts. Creation requires the acting doctor's confirmed/completed visit, not an arbitrary patient UUID.
+
+```json
+{"type":"FOLLOW_UP","title":"Provider review","dueAt":"2026-12-01T09:00:00Z"}
+```
+
+Activities follow NOT_STARTED → SCHEDULED/IN_PROGRESS → COMPLETED, with cancellation before completion. OVERDUE is derived without destroying lifecycle state. Completion requires a recorded outcome; terminal states cannot reopen.
+
+```json
+{"version":1,"status":"COMPLETED","outcome":"Synthetic provider review completed."}
+```
+
+Referrals follow CREATED → PENDING_ACCEPTANCE → ACCEPTED → SCHEDULED → IN_PROGRESS → COMPLETED. The sender submits; the receiver accepts/executes/completes. Scheduling verifies patient/provider and confirmed appointment; completion verifies actual appointment completion and an outcome. Kafka reopens scheduled referrals to ACCEPTED after visit cancellation/rejection/rescheduling, clears the link and records system history. Reassignment requires cancellation of a linked active visit.
+
+```json
+{"doctorId":"00000000-0000-0000-0000-000000000002","availableFrom":"2026-12-01T09:00:00Z","availableTo":"2026-12-01T12:00:00Z","notifyInApp":true}
+```
+
+Keep the same UUID acceptance key across network retries. Offers last up to fifteen minutes, never beyond visit start. Competing, expired or inactive offers return 409; booking revalidates provider availability and database overlap constraints.
+
+```json
+{"name":"Provider-defined overdue review","activityType":"FOLLOW_UP","triggerCondition":"OVERDUE","intervalHours":24,"severity":"WARNING","notificationPolicy":"IN_APP","responsibleRole":"DOCTOR"}
+```
+
+Rules support FOLLOW_UP/INVESTIGATION/CONSULTATION/REFERRAL, OVERDUE or referral-only UNSCHEDULED, a 0–8760 hour grace period, INFO/WARNING/HIGH severity and IN_APP/NONE notifications. Grace is measured from deadline or acceptance/update time. Only admins route responsibility to ADMIN. Active alerts deduplicate; a resolved alert can reopen for a new scheduling gap, with fresh audit/outbox evidence. No clinical rules are seeded.
+
+## Original appointment platform API
 
 All paths below are relative to `/api/v1`. JSON inputs reject unknown fields. Successful creates return 201, deletes/logout return 204, other successful operations return 200. Paged responses have `content`, `totalElements`, `totalPages`, `number`, `size`. `page` is zero-based; `size` is capped at 100; `sort=field,asc|desc` is allowlisted per resource.
 

@@ -32,9 +32,17 @@ public class AuditService {
 
   @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void authorizationFailure() {
-    AuditLog log=new AuditLog();log.action="AUTHORIZATION_DENIED";log.entityType="AUTH";
-    var auth=org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
-    if(auth!=null)try {log.actorId=UUID.fromString(auth.getName());}catch(IllegalArgumentException ignored){}
+    AuditLog log = new AuditLog();
+    log.action = "AUTHORIZATION_DENIED";
+    log.entityType = "AUTH";
+    var auth =
+        org.springframework.security.core.context.SecurityContextHolder.getContext()
+            .getAuthentication();
+    if (auth != null)
+      try {
+        log.actorId = UUID.fromString(auth.getName());
+      } catch (IllegalArgumentException ignored) {
+      }
     repository.save(log);
   }
 }

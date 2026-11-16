@@ -2,6 +2,12 @@ name: CareBridge CI
 on:
   push:
   pull_request:
+  workflow_dispatch:
+    inputs:
+      deploy_render:
+        description: Deploy the tested main commit to the configured Render service
+        type: boolean
+        default: false
 permissions:
   contents: read
 jobs:
@@ -13,10 +19,14 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '25'
+          java-version: '21'
           cache: maven
           cache-dependency-path: backend/pom.xml
       - run: mvn -B -f backend/pom.xml verify
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m unittest discover -s scripts -p "test_*.py"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -94,3 +104,22 @@ jobs:
           name: carebridge-images-${{ github.sha }}
           path: carebridge-images.tar.gz
           retention-days: 7
+  deploy-render:
+    if: github.event_name == 'workflow_dispatch' && inputs.deploy_render && github.ref == 'refs/heads/main'
+    needs: [backend, frontend, compose]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: production
+    concurrency:
+      group: carebridge-production
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Deploy tested commit and verify readiness and revision
+        run: python scripts/deploy-render.py
+        env:
+          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
+          PRODUCTION_API_ORIGIN: ${{ vars.PRODUCTION_API_ORIGIN }}

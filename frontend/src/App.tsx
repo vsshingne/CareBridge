@@ -19,13 +19,27 @@ import { Appointments } from "./pages/Appointments";
 import { Profile, Schedule } from "./pages/Profile";
 import { Admin } from "./pages/Admin";
 import { Dashboard } from "./pages/Dashboard";
-const CarePlans=lazy(()=>import("./pages/Care").then(m=>({default:m.CarePlans})));
-const NewCarePlan=lazy(()=>import("./pages/Care").then(m=>({default:m.NewCarePlan})));
-const CarePlanDetail=lazy(()=>import("./pages/Care").then(m=>({default:m.CarePlanDetail})));
-const Referrals=lazy(()=>import("./pages/Care").then(m=>({default:m.Referrals})));
-const CareJourney=lazy(()=>import("./pages/Care").then(m=>({default:m.CareJourney})));
-const CareGaps=lazy(()=>import("./pages/CareGaps").then(m=>({default:m.CareGaps})));
-const Recovery=lazy(()=>import("./pages/Recovery").then(m=>({default:m.Recovery})));
+const CarePlans = lazy(() =>
+  import("./pages/Care").then((m) => ({ default: m.CarePlans })),
+);
+const NewCarePlan = lazy(() =>
+  import("./pages/Care").then((m) => ({ default: m.NewCarePlan })),
+);
+const CarePlanDetail = lazy(() =>
+  import("./pages/Care").then((m) => ({ default: m.CarePlanDetail })),
+);
+const Referrals = lazy(() =>
+  import("./pages/Care").then((m) => ({ default: m.Referrals })),
+);
+const CareJourney = lazy(() =>
+  import("./pages/Care").then((m) => ({ default: m.CareJourney })),
+);
+const CareGaps = lazy(() =>
+  import("./pages/CareGaps").then((m) => ({ default: m.CareGaps })),
+);
+const Recovery = lazy(() =>
+  import("./pages/Recovery").then((m) => ({ default: m.Recovery })),
+);
 
 export default function App() {
   const { user, signOut } = useAuth();
@@ -53,7 +67,9 @@ export default function App() {
               </NavLink>
               <NavLink to="/care">Care plans</NavLink>
               <NavLink to="/gaps">Care gaps</NavLink>
-              {user.role === "PATIENT" && <NavLink to="/recovery">Waiting list</NavLink>}
+              {user.role === "PATIENT" && (
+                <NavLink to="/recovery">Waiting list</NavLink>
+              )}
               {user.role !== "ADMIN" && (
                 <NavLink to="/appointments">
                   <CalendarDays size={16} />
@@ -114,72 +130,130 @@ export default function App() {
       </header>
       <ErrorBox error={error} />
       <main>
-        <Suspense fallback={<p className="loading">Loading workspace…</p>}><Routes>
-          <Route path="/care" element={<Protected><CarePlans/></Protected>}/>
-          <Route path="/care/new" element={<Protected roles={["DOCTOR"]}><NewCarePlan/></Protected>}/>
-          <Route path="/care/:id" element={<Protected><CarePlanDetail/></Protected>}/>
-          <Route path="/referrals" element={<Protected><Referrals/></Protected>}/>
-          <Route path="/journey" element={<Protected roles={["PATIENT"]}><CareJourney/></Protected>}/>
-          <Route path="/journey/:patientId" element={<Protected><CareJourney/></Protected>}/>
-          <Route path="/gaps" element={<Protected><CareGaps/></Protected>}/>
-          <Route path="/recovery" element={<Protected roles={["PATIENT"]}><Recovery/></Protected>}/>
-          <Route path="/" element={<Landing />} />
-          <Route path="/login" element={<AuthPage />} />
-          <Route path="/register/:kind" element={<AuthPage />} />
-          <Route path="/doctors" element={<Directory />} />
-          <Route path="/doctors/:id" element={<DoctorPage />} />
-          <Route
-            path="/dashboard"
-            element={
-              <Protected>
-                <Dashboard />
-              </Protected>
-            }
-          />
-          <Route
-            path="/appointments"
-            element={
-              <Protected roles={["PATIENT", "DOCTOR"]}>
-                <Appointments />
-              </Protected>
-            }
-          />
-          <Route
-            path="/profile"
-            element={
-              <Protected roles={["PATIENT", "DOCTOR"]}>
-                <Profile />
-              </Protected>
-            }
-          />
-          <Route
-            path="/schedule"
-            element={
-              <Protected roles={["DOCTOR"]}>
-                <Schedule />
-              </Protected>
-            }
-          />
-          <Route
-            path="/admin"
-            element={
-              <Protected roles={["ADMIN"]}>
-                <Admin />
-              </Protected>
-            }
-          />
-          <Route
-            path="*"
-            element={
-              <section className="empty">
-                <h1>Page not found</h1>
-                <Link className="btn" to="/">
-                  Back to home
-                </Link>
-              </section>
-            }
-          />
-        </Routes></Suspense>
+        <Suspense fallback={<p className="loading">Loading workspace…</p>}>
+          <Routes>
+            <Route
+              path="/care"
+              element={
+                <Protected>
+                  <CarePlans />
+                </Protected>
+              }
+            />
+            <Route
+              path="/care/new"
+              element={
+                <Protected roles={["DOCTOR"]}>
+                  <NewCarePlan />
+                </Protected>
+              }
+            />
+            <Route
+              path="/care/:id"
+              element={
+                <Protected>
+                  <CarePlanDetail />
+                </Protected>
+              }
+            />
+            <Route
+              path="/referrals"
+              element={
+                <Protected>
+                  <Referrals />
+                </Protected>
+              }
+            />
+            <Route
+              path="/journey"
+              element={
+                <Protected roles={["PATIENT"]}>
+                  <CareJourney />
+                </Protected>
+              }
+            />
+            <Route
+              path="/journey/:patientId"
+              element={
+                <Protected>
+                  <CareJourney />
+                </Protected>
+              }
+            />
+            <Route
+              path="/gaps"
+              element={
+                <Protected>
+                  <CareGaps />
+                </Protected>
+              }
+            />
+            <Route
+              path="/recovery"
+              element={
+                <Protected roles={["PATIENT"]}>
+                  <Recovery />
+                </Protected>
+              }
+            />
+            <Route path="/" element={<Landing />} />
+            <Route path="/login" element={<AuthPage />} />
+            <Route path="/register/:kind" element={<AuthPage />} />
+            <Route path="/doctors" element={<Directory />} />
+            <Route path="/doctors/:id" element={<DoctorPage />} />
+            <Route
+              path="/dashboard"
+              element={
+                <Protected>
+                  <Dashboard />
+                </Protected>
+              }
+            />
+            <Route
+              path="/appointments"
+              element={
+                <Protected roles={["PATIENT", "DOCTOR"]}>
+                  <Appointments />
+                </Protected>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <Protected roles={["PATIENT", "DOCTOR"]}>
+                  <Profile />
+                </Protected>
+              }
+            />
+            <Route
+              path="/schedule"
+              element={
+                <Protected roles={["DOCTOR"]}>
+                  <Schedule />
+                </Protected>
+              }
+            />
+            <Route
+              path="/admin"
+              element={
+                <Protected roles={["ADMIN"]}>
+                  <Admin />
+                </Protected>
+              }
+            />
+            <Route
+              path="*"
+              element={
+                <section className="empty">
+                  <h1>Page not found</h1>
+                  <Link className="btn" to="/">
+                    Back to home
+                  </Link>
+                </section>
+              }
+            />
+          </Routes>
+        </Suspense>
       </main>
       <footer>
         <Link to="/" className="brand">

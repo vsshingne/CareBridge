@@ -35,7 +35,8 @@ public class AuthService {
       RefreshTokenRepository refresh,
       PasswordEncoder passwords,
       JwtService jwt,
-      AuditService audit,com.carebridge.outbox.EventService events) {
+      AuditService audit,
+      com.carebridge.outbox.EventService events) {
     this.users = users;
     this.patients = patients;
     this.doctors = doctors;
@@ -43,7 +44,7 @@ public class AuthService {
     this.passwords = passwords;
     this.jwt = jwt;
     this.audit = audit;
-    this.events=events;
+    this.events = events;
     dummyHash = passwords.encode(UUID.randomUUID().toString());
   }
 
@@ -65,7 +66,7 @@ public class AuthService {
       Patient p = new Patient();
       p.userId = u.id;
       patients.save(p);
-      events.domain(p.id,"PATIENT","PATIENT_REGISTERED",p.id,null);
+      events.domain(p.id, "PATIENT", "PATIENT_REGISTERED", p.id, null);
     } else {
       if (r.specialization() == null
           || r.specialization().isBlank()
@@ -94,7 +95,7 @@ public class AuthService {
       audit.loginFailure();
       throw ApiException.unauthorized();
     }
-    audit.record(found.get().id,"LOGIN_SUCCEEDED","USER",found.get().id);
+    audit.record(found.get().id, "LOGIN_SUCCEEDED", "USER", found.get().id);
     return issue(found.get(), UUID.randomUUID());
   }
 
@@ -119,9 +120,14 @@ public class AuthService {
 
   @Transactional
   public void logout(String raw) {
-    if (raw != null) refresh.lockByHash(hash(raw)).ifPresent(t -> {
-      refresh.revokeFamily(t.familyId);audit.record(t.userId,"LOGOUT","USER",t.userId);
-    });
+    if (raw != null)
+      refresh
+          .lockByHash(hash(raw))
+          .ifPresent(
+              t -> {
+                refresh.revokeFamily(t.familyId);
+                audit.record(t.userId, "LOGOUT", "USER", t.userId);
+              });
   }
 
   private Tokens issue(UserAccount user, UUID family) {

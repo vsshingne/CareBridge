@@ -141,7 +141,15 @@ export function Appointments() {
                   </small>
                 </div>
                 <div className="appointment-actions">
-                  {user?.role === "DOCTOR" && ["CONFIRMED", "COMPLETED"].includes(a.status) && <Link className="btn secondary small" to={`/care/new?appointment=${a.id}`}>Create care plan</Link>}
+                  {user?.role === "DOCTOR" &&
+                    ["CONFIRMED", "COMPLETED"].includes(a.status) && (
+                      <Link
+                        className="btn secondary small"
+                        to={`/care/new?appointment=${a.id}`}
+                      >
+                        Create care plan
+                      </Link>
+                    )}
                   {user?.role === "PATIENT" && active && future && (
                     <Link
                       className="btn secondary small"

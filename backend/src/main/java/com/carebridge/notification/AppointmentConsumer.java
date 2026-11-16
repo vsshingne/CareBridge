@@ -18,6 +18,13 @@ public class AppointmentConsumer {
 
   @KafkaListener(topics = "appointment-events")
   public void consume(String payload) throws JsonProcessingException {
-    service.process(mapper.readValue(payload, Event.class));
+    var event = mapper.readValue(payload, Event.class);
+    try (var ignored =
+        org.slf4j.MDC.putCloseable(
+            "requestId",
+            com.carebridge.outbox.EventService.correlation(
+                event.correlationId(), event.eventId()))) {
+      service.process(event);
+    }
   }
 }

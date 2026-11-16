@@ -1,10 +1,10 @@
 # Architecture
 
-## CareBridge 2.0 extension (target, not a completion claim)
+## CareBridge 2.0 extension
 
 The master request extends the existing appointment platform with care coordination, recovery, configured gap detection and a FHIR R4 mapping boundary. Retain the current modular monolith and API contracts. New persistence uses additive migrations; never modify applied V1. Care plans own goals and typed activities (investigation, follow-up, referral); referral execution has a separate explicit lifecycle and an optional verified appointment link. Plan/referral versions, row locks and immutable history prevent silent lost updates. Provider authorization is scoped per responsible/receiving assignment, not by role alone. Patients have read access only to their own care records. Clinical free text stays out of event payloads and audit metadata. See IMPLEMENTATION_PLAN.md for ordered gates and actual implementation progress.
 
-CareBridge is a Java 25 / Spring Boot 3.5.16 modular monolith and React 19 TypeScript SPA. Controllers validate DTOs; services enforce ownership and transaction boundaries; Spring Data JPA repositories persist to PostgreSQL 17.6. Flyway owns schema changes and Hibernate validates them. UUID references have database foreign keys where appropriate; entities intentionally do not expose ORM graphs as API responses.
+CareBridge is a Java 21 / Spring Boot 3.5.16 modular monolith and React 19 TypeScript SPA. Controllers validate DTOs; services enforce ownership and transaction boundaries; Spring Data JPA repositories persist to PostgreSQL 17.6. Flyway owns schema changes and Hibernate validates them. UUID references have database foreign keys where appropriate; entities intentionally do not expose ORM graphs as API responses.
 
 The SPA uses React Router, TanStack Query, React Hook Form/Zod and Tailwind. Axios defaults to `/api/v1`, configurable through `VITE_API_BASE_URL`. Vite development proxy target is `API_PROXY_TARGET`; production nginx proxies to the backend service. The recommended deployment uses one public HTTPS origin to retain Strict HttpOnly refresh cookies.
 
@@ -14,7 +14,25 @@ Redis caches public catalog DTOs only. Live slots and booking validation read Po
 
 Kafka is retained because the implementation already relies on it. Outbox publishers acknowledge broker writes before marking published; retries may deliver duplicates. Consumer transactions deduplicate by event ID and write persisted inbox notifications plus a follow-up event. Failures retry then reach a dead-letter topic. Notifications are an in-app inbox, not SMS/email delivery. No additional microservices are introduced.
 
-Local topology is five Compose services. Production topology is two application containers behind a host TLS proxy plus private managed PostgreSQL/Redis/Kafka. The backend runs continuously for scheduling and consumption. See DEPLOYMENT.md for tradeoffs and operating requirements. Optional recovery/MFA/clinical-record workflows are outside the established implementation scope. Cross-tab refresh coordination, retention jobs and batched DTO reads remain improvements.
+Local topology is five Compose services. Production can use Vercel for the SPA and an always-on Render Docker backend with managed PostgreSQL/Redis/Kafka, or the existing two-container VM topology behind a TLS proxy. The backend runs continuously for scheduling and consumption. Password recovery/MFA, cross-tab refresh coordination, retention jobs and batched original appointment DTO reads remain improvements.
+
+The implemented `care`, `recovery`, `gap` and `fhir` modules use additive V2–V5 migrations. JDBC services share Spring transactions with existing JPA workflows. Plans own investigation, follow-up and consultation activities plus separate referral workflows. Protected history snapshots and version checks record changes. Care notifications extend the original inbox without replacing appointment events. FHIR uses HAPI's strict parser, local R4 definitions and instance validator. React portal additions load lazily.
+
+```mermaid
+flowchart TD
+  Visit[Confirmed/completed visit] --> Plan[Care plan and goals]
+  Plan --> Activity[Investigation / follow-up / consultation]
+  Plan --> Referral[Referral lifecycle]
+  Referral --> Appointment[Receiving-provider appointment]
+  Appointment --> Completion[Verified completion and outcome]
+  Appointment -->|cancelled / moved| Reopen[Return referral to accepted]
+  Activity --> Rules[Configured gap rules]
+  Reopen --> Rules
+  Rules --> Alerts[Deduplicated alerts and notices]
+  Activity --> History[Protected history and journey]
+  Completion --> History
+  Plan --> Export[Validated R4 collection bundle]
+```
 
 ```mermaid
 flowchart LR

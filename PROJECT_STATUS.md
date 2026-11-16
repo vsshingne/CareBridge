@@ -1,5 +1,26 @@
 # CareBridge implementation status
 
+## Final implementation checkpoint — 16 November 2026
+
+This checkpoint supersedes the historical audits and interim status statements below. Java 21 is retained by the owner's explicit instruction. The original application and V1 migration are preserved.
+
+| Scope | Status | Evidence |
+| --- | --- | --- |
+| Closed-loop care, activities, referrals and journey | COMPLETE for documented scope | Transactional history, ownership, lifecycle and concurrency tests; real browser journey |
+| Appointment recovery | COMPLETE for documented scope | Kafka cancellation delivery, expiring offers, concurrent/idempotent booking tests and browser claim |
+| Explicit care-gap rules | COMPLETE for documented scope | No inferred clinical rules; deduplication, resolution/reopening and browser workflow |
+| FHIR R4 export | COMPLETE for documented subset | Eight resource types, strict validation and authorization tests |
+| Frontend, events, audit and metrics | COMPLETE for documented scope | Integrated portals, durable consumers, correlation compatibility, protected metrics |
+| Local verification | PASS | 18 unit + 25 integration tests; final dashboard focused regression also passed; seven browser tests; lint/build; three deployment-script tests |
+| Migrations and configuration | PASS | Empty database V1–V5, Compose syntax, native full-stack readiness |
+| Docker/hosted CI/cloud release | PARTIALLY COMPLETE / NOT VERIFIED | Configuration and gated manual deployment prepared; no daemon or external execution |
+| Documentation and final report | COMPLETE | ENGINEERING_REPORT.md, TESTING.md and LAUNCH_CHECKLIST.md describe evidence and limitations |
+
+Production release remains NOT READY until Docker runtime, hosted CI, managed-service configuration, security/load/restore and deployment acceptance gates are verified. No external resources were provisioned or deployed. No commit or push was made by the agent; repository commits appeared externally during continuation. See ENGINEERING_REPORT.md for supported boundaries and technical debt.
+
+## Historical implementation record
+
+
 > CareBridge 2.0 scope supersedes historical completion claims below. The original application is an appointment platform; the four requested 2.0 differentiators were absent at the start of this session. See the latest audit section and IMPLEMENTATION_PLAN.md.
 
 ## CareBridge 2.0 baseline audit — 15 November 2026
@@ -31,7 +52,7 @@ Fresh baseline: Maven unit tests **15 passed**, frontend ESLint and TypeScript/V
 Fresh full baseline subsequently passed: **15 unit + 13 integration**, zero failures/errors/skips. Care foundation verification passed: **15 unit + 16 integration**, zero failures/errors/skips (`.tools/v2-care-verify.log`). New tests verify cross-patient/provider isolation, provider-owned activity execution, non-empty completion outcome, genuine referral completion, history filtering/pagination and concurrent version conflicts. Files added: V2 migration and `care/{CareController,CareDtos,CareService,CareStates}.java`; tests extend PlatformIT. No existing appointment API was changed. Care backend is PARTIALLY COMPLETE/P0 until event/history refinements and UI are verified. Recovery implementation is currently under test; remaining phases are not complete.
 
 ## Architecture and plan
-One Java 25 / Spring Boot 3.5 modular monolith, a React TypeScript SPA, PostgreSQL as the transactional source of truth, Kafka for asynchronous events, Redis for public catalog caches. No cloud deployment is configured.
+One Java 21 / Spring Boot 3.5 modular monolith, a React TypeScript SPA, PostgreSQL as the transactional source of truth, Kafka for asynchronous events, Redis for public catalog caches. No cloud deployment is configured.
 
 Controllers accept validated DTOs, services own transactions and authorization, Spring Data repositories own persistence. Flyway owns the schema. A doctor row lock serializes scheduling changes; a PostgreSQL partial GiST exclusion constraint independently prevents active appointment overlap. UTC appointment instants are matched against weekly availability in the doctor's IANA timezone. Rescheduling preserves the appointment ID and returns it to PENDING.
 
@@ -67,7 +88,7 @@ docker-compose.yml, .env.example, README.md
 8. Readiness: images, CI, seed mechanism, diagrams, security review, complete regression.
 
 ## Dependencies
-Backend: Spring Boot BOM 3.5.16 (Web, Security, OAuth2 resource server/Jose, JPA, Validation, Actuator, Redis, Cache, Kafka, Flyway, PostgreSQL); springdoc 2.8.17; Testcontainers BOM 1.21.4; JUnit/Mockito/MockMvc via Boot test starter. Java 25, Maven 3.9.11.
+Backend: Spring Boot BOM 3.5.16 (Web, Security, OAuth2 resource server/Jose, JPA, Validation, Actuator, Redis, Cache, Kafka, Flyway, PostgreSQL); springdoc 2.8.17; Testcontainers BOM 1.21.4; JUnit/Mockito/MockMvc via Boot test starter. Java 21, Maven 3.9.11.
 Frontend versions will be pinned in package.json and package-lock.json. Infrastructure: PostgreSQL 17.6, Redis 7.4.5, Apache Kafka 3.9.1 (single-node KRaft for local use).
 
 ## Risks and decisions
@@ -111,7 +132,7 @@ Generated tools, native database data, logs and test binaries are ignored under 
 
 Scope: inspected backend modules, SQL migration, frontend routes/forms/API client, Maven/npm manifests, Dockerfiles, Compose, CI, seed script and test sources. No AGENTS.md found in the repository. All project files are untracked; existing files and local environment are preserved. Historical results above are not evidence of execution in this audit.
 
-Actual stack: Java 25, Spring Boot 3.5.16 modular monolith, JPA with PostgreSQL/Flyway, JWT/BCrypt, Redis public cache, Kafka transactional outbox, React 19/TypeScript/Vite/Tailwind. Preserve this architecture; no extra services or clinical features are justified.
+Actual stack: Java 21, Spring Boot 3.5.16 modular monolith, JPA with PostgreSQL/Flyway, JWT/BCrypt, Redis public cache, Kafka transactional outbox, React 19/TypeScript/Vite/Tailwind. Preserve this architecture; no extra services or clinical features are justified.
 
 | Feature / concern | Initial status | Priority | Evidence / action |
 | --- | --- | --- | --- |

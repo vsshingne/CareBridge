@@ -17,7 +17,33 @@ public class EventService {
       UUID patientId,
       UUID doctorId,
       String eventType,
-      Instant timestamp) {}
+      Instant timestamp,
+      String correlationId) {
+    public Event(
+        int schemaVersion,
+        UUID eventId,
+        UUID appointmentId,
+        UUID patientId,
+        UUID doctorId,
+        String eventType,
+        Instant timestamp) {
+      this(
+          schemaVersion,
+          eventId,
+          appointmentId,
+          patientId,
+          doctorId,
+          eventType,
+          timestamp,
+          org.slf4j.MDC.get("requestId") == null
+              ? String.valueOf(eventId)
+              : org.slf4j.MDC.get("requestId"));
+    }
+  }
+
+  public static String correlation(String value, UUID eventId) {
+    return value != null && value.matches("[a-zA-Z0-9-]{1,80}") ? value : String.valueOf(eventId);
+  }
 
   private final OutboxRepository outbox;
   private final ObjectMapper mapper;
@@ -27,19 +53,46 @@ public class EventService {
     this.mapper = mapper;
   }
 
-  public record DomainEvent(int schemaVersion, UUID eventId, UUID aggregateId, String aggregateType,
-      String eventType, UUID patientId, UUID providerId, String correlationId, Instant timestamp) {}
+  public record DomainEvent(
+      int schemaVersion,
+      UUID eventId,
+      UUID aggregateId,
+      String aggregateType,
+      String eventType,
+      UUID patientId,
+      UUID providerId,
+      String correlationId,
+      Instant timestamp) {}
 
   @Transactional(propagation = Propagation.MANDATORY)
-  public UUID domain(UUID aggregateId, String aggregateType, String eventType, UUID patientId, UUID providerId) {
-    UUID id=UUID.randomUUID();
-    String correlation=org.slf4j.MDC.get("requestId");
-    var event=new DomainEvent(1,id,aggregateId,aggregateType,eventType,patientId,providerId,
-        correlation==null?id.toString():correlation,Instant.now());
-    OutboxEvent row=new OutboxEvent(); row.id=id; row.aggregateId=aggregateId;
-    row.aggregateType=aggregateType; row.eventType=eventType; row.topic="care-events";
-    try {row.payload=mapper.writeValueAsString(event);} catch(JsonProcessingException e) {throw new IllegalStateException("Event serialization failed",e);}
-    outbox.save(row); return id;
+  public UUID domain(
+      UUID aggregateId, String aggregateType, String eventType, UUID patientId, UUID providerId) {
+    UUID id = UUID.randomUUID();
+    String correlation = org.slf4j.MDC.get("requestId");
+    var event =
+        new DomainEvent(
+            1,
+            id,
+            aggregateId,
+            aggregateType,
+            eventType,
+            patientId,
+            providerId,
+            correlation == null ? id.toString() : correlation,
+            Instant.now());
+    OutboxEvent row = new OutboxEvent();
+    row.id = id;
+    row.aggregateId = aggregateId;
+    row.aggregateType = aggregateType;
+    row.eventType = eventType;
+    row.topic = "care-events";
+    try {
+      row.payload = mapper.writeValueAsString(event);
+    } catch (JsonProcessingException e) {
+      throw new IllegalStateException("Event serialization failed", e);
+    }
+    outbox.save(row);
+    return id;
   }
 
   @Transactional(propagation = Propagation.MANDATORY)

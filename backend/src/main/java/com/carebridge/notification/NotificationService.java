@@ -15,7 +15,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class NotificationService {
-  public record View(UUID id, UUID appointmentId, UUID entityId, String eventType, Instant createdAt) {}
+  public record View(
+      UUID id, UUID appointmentId, UUID entityId, String eventType, Instant createdAt) {}
 
   private final JdbcTemplate jdbc;
   private final NotificationRepository notifications;
@@ -88,11 +89,33 @@ public class NotificationService {
 
   @Transactional(readOnly = true)
   public Pages.Result<View> mine(Pageable p) {
-    p=Pages.checked(p,"createdAt");UUID user=current.get().id;
-    String query="select id,appointment_id,appointment_id entity_id,event_type,created_at from notifications where user_id=? union all select id,null::uuid,entity_id,event_type,created_at from care_notifications where user_id=?";
-    long count=jdbc.queryForObject("select count(*) from ("+query+") n",Long.class,user,user);
-    var rows=jdbc.query("select * from ("+query+") n order by created_at desc,id desc limit ? offset ?",
-        (r,n)->new View(r.getObject("id",UUID.class),r.getObject("appointment_id",UUID.class),r.getObject("entity_id",UUID.class),r.getString("event_type"),r.getTimestamp("created_at").toInstant()),user,user,p.getPageSize(),p.getOffset());
-    return new Pages.Result<>(rows,count,(int)((count+p.getPageSize()-1)/p.getPageSize()),p.getPageNumber(),p.getPageSize());
+    p = Pages.checked(p, "createdAt");
+    UUID user = current.get().id;
+    String query =
+        "select id,appointment_id,appointment_id entity_id,event_type,created_at from notifications"
+            + " where user_id=? union all select id,null::uuid,entity_id,event_type,created_at from"
+            + " care_notifications where user_id=?";
+    long count =
+        jdbc.queryForObject("select count(*) from (" + query + ") n", Long.class, user, user);
+    var rows =
+        jdbc.query(
+            "select * from (" + query + ") n order by created_at desc,id desc limit ? offset ?",
+            (r, n) ->
+                new View(
+                    r.getObject("id", UUID.class),
+                    r.getObject("appointment_id", UUID.class),
+                    r.getObject("entity_id", UUID.class),
+                    r.getString("event_type"),
+                    r.getTimestamp("created_at").toInstant()),
+            user,
+            user,
+            p.getPageSize(),
+            p.getOffset());
+    return new Pages.Result<>(
+        rows,
+        count,
+        (int) ((count + p.getPageSize() - 1) / p.getPageSize()),
+        p.getPageNumber(),
+        p.getPageSize());
   }
 }

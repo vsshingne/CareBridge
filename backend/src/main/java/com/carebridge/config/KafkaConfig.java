@@ -10,8 +10,16 @@ import org.springframework.util.backoff.FixedBackOff;
 
 @Configuration
 public class KafkaConfig {
-  @Bean NewTopic careTopic() {return TopicBuilder.name("care-events").partitions(3).replicas(1).build();}
-  @Bean NewTopic careDeadLetterTopic() {return TopicBuilder.name("care-events.DLT").partitions(3).replicas(1).build();}
+  @Bean
+  NewTopic careTopic() {
+    return TopicBuilder.name("care-events").partitions(3).replicas(1).build();
+  }
+
+  @Bean
+  NewTopic careDeadLetterTopic() {
+    return TopicBuilder.name("care-events.DLT").partitions(3).replicas(1).build();
+  }
+
   @Bean
   NewTopic appointmentTopic() {
     return TopicBuilder.name("appointment-events").partitions(3).replicas(1).build();

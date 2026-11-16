@@ -1,8 +1,14 @@
-# CareBridge
+# CareBridge 2.0
+
+The original appointment platform now includes closed-loop care plans and referrals, Kafka-driven appointment recovery, explicitly configured care-gap rules, and validated FHIR R4 exports. Existing authentication, profiles, scheduling and admin workflows are preserved. Java **21** is the agreed application, Docker and CI target.
+
+Providers create plans from confirmed/completed visits, record goals and outcomes, and track referral completion. Patients see their own care journey and can join waiting lists for expiring appointment offers. Rule-based alerts resolve on completion and reopen when a cancelled referral visit needs scheduling again. No clinical recommendations are inferred.
+
+See [TESTING.md](TESTING.md), [FHIR_INTEGRATION.md](FHIR_INTEGRATION.md), [EVENT_ARCHITECTURE.md](EVENT_ARCHITECTURE.md), and [SECURITY.md](SECURITY.md) for evidence and boundaries. Cloud configurations are prepared; no cloud deployment or compliance certification is claimed.
 
 Current audit and launch gates: [PROJECT_STATUS.md](PROJECT_STATUS.md) and [LAUNCH_CHECKLIST.md](LAUNCH_CHECKLIST.md). See [LOCAL_SETUP.md](LOCAL_SETUP.md) for exact PowerShell/Linux/macOS startup commands, [ARCHITECTURE.md](ARCHITECTURE.md), [API_DOCUMENTATION.md](API_DOCUMENTATION.md), and [DEPLOYMENT.md](DEPLOYMENT.md). Production configuration is prepared; Docker runtime, hosted CI and external production acceptance remain unverified.
 
-Healthcare appointment and care coordination platform: Java 25 / Spring Boot, React / TypeScript, PostgreSQL, Kafka and Redis. A modular monolith with real authentication, transactional scheduling, asynchronous database inbox notifications, and role-specific workspaces.
+Healthcare appointment and care coordination platform: Java 21 / Spring Boot, React / TypeScript, PostgreSQL, Kafka and Redis. A modular monolith with real authentication, transactional scheduling, asynchronous database inbox notifications, and role-specific workspaces.
 
 ## Start locally
 
@@ -312,7 +318,7 @@ Validation errors use 400, missing/expired authentication 401, ownership/role fa
 | React Hook Form / Zod / resolvers | 7.63.0 / 4.6.7 / 7.0.3 |
 | Playwright | 1.64.1 |
 
-All frontend dependencies are exact in `package.json` and transitively locked in `package-lock.json`. The minimatch override under TypeScript ESLint selects 11.0.4 to address a reported glob amplification advisory; lint was rerun with the override. Backend transitive versions are pinned by the Boot/Testcontainers BOMs. Spring Boot 3.5.16 supports Java 25 ([Spring requirements](https://docs.spring.io/spring-boot/3.5/system-requirements.html)); springdoc 2.x is for Boot 3 ([springdoc compatibility](https://springdoc.org/v2/)). Update and retest dependencies before an Internet-facing deployment; pinning is reproducibility, not a permanent security guarantee.
+All frontend dependencies are exact in `package.json` and transitively locked in `package-lock.json`. The minimatch override under TypeScript ESLint selects 11.0.4 to address a reported glob amplification advisory; lint was rerun with the override. Backend transitive versions are pinned by the Boot/Testcontainers BOMs. Spring Boot 3.5.16 supports Java 21 ([Spring requirements](https://docs.spring.io/spring-boot/3.5/system-requirements.html)); springdoc 2.x is for Boot 3 ([springdoc compatibility](https://springdoc.org/v2/)). Update and retest dependencies before an Internet-facing deployment; pinning is reproducibility, not a permanent security guarantee.
 
 | Environment variable | Default / purpose |
 | --- | --- |

@@ -12,3 +12,4 @@ frontend/.env.production.local
 *.tsbuildinfo
 frontend/playwright-report/
 frontend/test-results/
+**/__pycache__/

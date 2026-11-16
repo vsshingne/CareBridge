@@ -1,6 +1,6 @@
 # FHIR integration
 
-Selected format: HL7 FHIR R4 **4.0.1**, JSON only. HAPI FHIR **8.4.0** structures, instance validator and bundled R4 validation resources are pinned together. HAPI is used as a mapping/validation library; the application remains a modular monolith, not a HAPI JPA server. Dependency resolution and executable validation tests are required before treating this phase as verified.
+Selected format: HL7 FHIR R4 **4.0.1**, JSON only. HAPI FHIR **8.4.0** structures, instance validator, caffeine cache provider and bundled R4 validation resources are pinned together. HAPI is used as a mapping/validation library; the application remains a modular monolith, not a HAPI JPA server. Dependency resolution and executable mapping/validation/isolation tests passed in the final Maven verification; see TESTING.md.
 
 `GET /api/v1/fhir/r4/care-plans/{planId}/bundle` returns `application/fhir+json`. Bearer authentication and the clinical care-plan ownership policy apply before any export. Patients can export their own plan; the responsible provider and administrators can export it. A receiving referral provider cannot export the referring provider's entire plan. Access is audited.
 

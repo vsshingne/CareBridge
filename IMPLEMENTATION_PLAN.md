@@ -1,11 +1,20 @@
 # CareBridge 2.0 implementation plan
 
+## Final phase disposition — 16 November 2026
+
+Phases 1–10 and 14 are complete for the scope and limits in ENGINEERING_REPORT.md. Phase 11 has validated setup/configuration and real native-service tests; Docker builds/runtime remain NOT VERIFIED. Phase 12 has test-gated CI and release/deployment configuration, but hosted execution remains NOT VERIFIED. Phase 13 deployment preparation is complete; no cloud deployment was performed. Java 21 is retained.
+
+Final evidence: 18 unit + 25 integration tests passed, followed by the final dashboard-focused regression; seven browser tests, frontend lint/build, three deployment verifier tests, clean V1–V5 migrations, native readiness and both Compose syntax checks passed. See TESTING.md for exact scope and logs.
+
+Remaining release work: execute Docker/Compose and hosted CI, configure authorized production services/domains/secrets, verify security/load/backup restore, then deploy and validate the matching revision. These external gates are not application implementation completion claims. The ordered plan and checkpoints below are historical; final status takes precedence. Resolved gap alerts now reopen when the configured condition recurs.
+
+
 Authoritative scope: attached master request, 15 November 2026. Preserve existing files and data; no deployment or paid services authorized. Historical reports describe CareBridge 1.0, not completion of 2.0.
 
 ## Ordered phases and verification gates
 
 1. Audit: inventory source, migrations, security, UI, infrastructure and tests; execute fresh baseline before application edits. COMPLETE (integration result recorded in PROJECT_STATUS).
-2. Architecture: retain Java 25/Spring Boot modular monolith, PostgreSQL, existing outbox/Kafka and React. COMPLETE. New modules use additive Flyway migrations and explicit DTOs. No external clinical decisions.
+2. Architecture: retain Java 21/Spring Boot modular monolith, PostgreSQL, existing outbox/Kafka and React. COMPLETE. New modules use additive Flyway migrations and explicit DTOs. No external clinical decisions.
 3. Database/backend: COMPLETE for care foundation. V2 additive migration, DTOs, scoped transactional JDBC services alongside existing JPA; PostgreSQL verify passed.
 4. Closed-loop care: transactional goals/activities, referral lifecycle, reassignment and appointment verification; paginated, authorized journey. Verify isolation, transitions, rollback and concurrent updates.
 5. Recovery: waiting preferences, cancellation-driven idempotent offers, expiry, atomic claim through existing doctor locking and exclusion constraint. Verify competing claims and retries.
@@ -32,7 +41,7 @@ Authoritative scope: attached master request, 15 November 2026. Preserve existin
 
 Read latest PROJECT_STATUS.md section first. Inspect actual files and test reports before proceeding. Execute phases in order and update this document with exact outstanding work if a session ends. Do not treat planned phases as implemented or historical tests as current evidence.
 
-## Current checkpoint
+## Historical checkpoints
 
 - Baseline full verify: 15 unit + 13 integration tests passed.
 - Phase 3/4 backend: care plans, goals, activities, referrals, reassignment, scoped paginated history and version conflict protection implemented. Verify: 15 unit + 16 integration tests passed (`.tools/v2-care-verify.log`). UI remains phase 9. Journey currently includes care history and current appointment state; notification inclusion and full appointment history remain phase 8 work.

@@ -53,7 +53,11 @@ public class SecurityConfig {
   }
 
   @Bean
-  SecurityFilterChain security(HttpSecurity http, UserRepository users, ObjectMapper mapper,com.carebridge.audit.AuditService audit)
+  SecurityFilterChain security(
+      HttpSecurity http,
+      UserRepository users,
+      ObjectMapper mapper,
+      com.carebridge.audit.AuditService audit)
       throws Exception {
     return http.cors(c -> {})
         .csrf(c -> c.disable())
@@ -63,6 +67,7 @@ public class SecurityConfig {
                 a.requestMatchers(
                         "/api/v1/auth/**",
                         "/actuator/health",
+                        "/actuator/info",
                         "/actuator/health/**",
                         "/v3/api-docs/**",
                         "/swagger-ui/**",

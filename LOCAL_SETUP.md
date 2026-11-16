@@ -1,6 +1,6 @@
 # Local setup
 
-Run commands from the repository root unless stated otherwise. Requirements: Java 25, Maven 3.9.11+, Node 22.19.0 (or supported Node 24+), npm, Docker Engine/Desktop with Linux containers and Compose v2. PostgreSQL 17.6, Redis 7.4.5 and Kafka 3.9.1 are supplied by Compose.
+Run commands from the repository root unless stated otherwise. Requirements: Java 21, Maven 3.9.11+, Node 22.19.0 (or supported Node 24+), npm, Docker Engine/Desktop with Linux containers and Compose v2. PostgreSQL 17.6, Redis 7.4.5 and Kafka 3.9.1 are supplied by Compose.
 
 ## Verify tools (PowerShell and Linux/macOS)
 
@@ -147,3 +147,11 @@ Stop native servers with Ctrl+C. `docker compose stop` pauses containers; `docke
 - Build/test process cannot replace JAR on Windows: stop the Java process using that JAR, then rerun Maven.
 
 Host verification limits are recorded in LAUNCH_CHECKLIST.md. Local runtime artifacts under `.tools` are ignored conveniences, not required installation paths.
+
+## CareBridge 2.0 workflows
+
+Startup applies additive migrations V1–V5. From a confirmed or completed appointment, the responsible provider can create a care plan, add activities and send referrals. Patients see their own care and journey; receiving providers manage only referrals assigned to them. The Recovery page registers waiting preferences and accepts available offers. Care Gaps exposes explicit provider/admin rules and scoped alerts; no clinical rules are seeded.
+
+Enable scheduled jobs and run Kafka for cancellation-driven offers, expiry, gap scans and event delivery. Metrics require an administrator session. FHIR export is available from an authorized care-plan view. See API_DOCUMENTATION.md for endpoints and FHIR_INTEGRATION.md for export boundaries.
+
+The temporary native Windows broker used during development is test infrastructure, not a production installation. Use the documented Linux-container or managed-service topology and verify broker storage and consumer lag. Test results and remaining runtime gates are in TESTING.md.
